@@ -12,11 +12,19 @@ public class Rate {
     private ArrayList<Period> normal = new ArrayList<>();
 
     public Rate(CarParkKind kind, ArrayList<Period> reducedPeriods, ArrayList<Period> normalPeriods, BigDecimal normalRate, BigDecimal reducedRate) {
+        // Ensures Car Park Kind cannot be null
+        if (kind == null) {
+            throw new IllegalArgumentException("CarParkKind cannot be null");
+        }
         if (reducedPeriods == null || normalPeriods == null) {
             throw new IllegalArgumentException("periods cannot be null");
         }
         if (normalRate == null || reducedRate == null) {
             throw new IllegalArgumentException("The rates cannot be null");
+        }
+        // Ensures rate values do not exceed 10
+        if (normalRate.compareTo(BigDecimal.TEN) > 0 || reducedRate.compareTo(BigDecimal.TEN) > 0) {
+            throw new IllegalArgumentException("Rates cannot exceed 10");
         }
         if (normalRate.compareTo(BigDecimal.ZERO) < 0 || reducedRate.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("A rate cannot be negative");
