@@ -95,12 +95,33 @@ public class Rate {
         }
         return isValid;
     }
+    
     public BigDecimal calculate(Period periodStay) {
         int normalRateHours = periodStay.occurences(normal);
         int reducedRateHours = periodStay.occurences(reduced);
-        if (this.kind==CarParkKind.VISITOR) return BigDecimal.valueOf(0);
-        return (this.hourlyNormalRate.multiply(BigDecimal.valueOf(normalRateHours))).add(
-                this.hourlyReducedRate.multiply(BigDecimal.valueOf(reducedRateHours)));
-    }
-
+    
+        BigDecimal total = (this.hourlyNormalRate.multiply(BigDecimal.valueOf(normalRateHours)))
+                .add(this.hourlyReducedRate.multiply(BigDecimal.valueOf(reducedRateHours)));
+    
+        switch (this.kind) {
+            case VISITOR:
+                if (total.compareTo(BigDecimal.TEN) <= 0) {
+                    return BigDecimal.ZERO; // Free if below or equal to 10
+                } else {
+                    return total.subtract(BigDecimal.TEN).multiply(new BigDecimal("0.50")); // 50% reduction above 10
+                }
+            case MANAGEMENT:
+                return total.compareTo(new BigDecimal("4.00")) < 0 ? new BigDecimal("4.00") : total; // Minimum payable 4.00
+            case STUDENT:
+                if (total.compareTo(new BigDecimal("5.50")) <= 0) {
+                    return total; // No reduction if below or equal to 5.50
+                } else {
+                    BigDecimal reduction = total.subtract(new BigDecimal("5.50")).multiply(new BigDecimal("0.25"));
+                    return new BigDecimal("5.50").add(reduction); // 25% reduction above 5.50
+                }
+            case STAFF:
+                return total.compareTo(new BigDecimal("16.00")) > 0 ? new BigDecimal("16.00") : total; // Max payable 16.00
+            default:
+                throw new IllegalArgumentException("Invalid CarParkKind");
+        }
 }
